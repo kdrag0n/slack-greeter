@@ -1,0 +1,11 @@
+# Build artifacts
+/target/
+
+# rustfmt backup files
+**/*.rs.bk
+
+# Bot config
+config.toml
+
+# Docker build instructions
+Dockerfile
