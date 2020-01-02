@@ -1145,6 +1145,7 @@ name = "slack-greeter"
 version = "0.1.0"
 dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "slack 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "stderrlog 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",

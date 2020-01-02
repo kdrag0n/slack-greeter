@@ -1,3 +1,10 @@
 [slack]
 # Slack API key obtained from https://my.slack.com/services/new/bot
 api_key = "xoxb-012345678901-234567890123-FoteJlltwxXRv3HeSUVGdzrW"
+
+[bot]
+# List of greetings (one will be randomly selected for each user)
+# Available format tags: workspace, name, mention
+greetings = [
+    "Welcome to *{workspace}*, {mention}! Enjoy your stay here."
+]

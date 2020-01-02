@@ -1,7 +1,10 @@
 use slack::{EventHandler, RtmClient, Event, Message};
 use slack::api::MessageChannelJoin;
+use rand::seq::SliceRandom;
 
-pub struct Handler;
+pub struct Handler {
+    pub greetings: Vec<String>
+}
 
 impl EventHandler for Handler {
     fn on_event(&mut self, client: &RtmClient, event: Event) {
@@ -24,37 +27,58 @@ impl EventHandler for Handler {
 }
 
 impl Handler {
-    fn get_greeting(&mut self) -> &str {
-        return "Hi"
+    fn get_greeting(&mut self, client: &RtmClient, user_id: &str) -> Option<String> {
+        let start_response = client.start_response();
+        let user = start_response
+            .users
+            .as_ref()?
+            .iter()
+            .find(|u| u.id.as_ref().unwrap() == user_id)?;
+
+        let template = self.greetings.choose(&mut rand::thread_rng())?;
+        let workspace = start_response.team.as_ref()?.name.as_ref()?;
+        let name = user.real_name.as_ref()?;
+        let mention = &format!("<@{}>", user_id);
+
+        Some(template.replace("{workspace}", workspace)
+            .replace("{name}", name)
+            .replace("{mention}", mention))
     }
 
     fn handle_message(&mut self, client: &RtmClient, message: Message) {
         match message {
-            Message::ChannelJoin(join_msg) => self.handle_join(client, join_msg),
+            Message::ChannelJoin(join_msg) => {
+                let success = self.handle_join(client, join_msg);
+                if success.is_none() {
+                    error!("Error handling join event");
+                }
+            },
             _ => {}
         }
     }
 
-    fn handle_join(&mut self, client: &RtmClient, join_msg: MessageChannelJoin) {
-        let user = join_msg.user.as_ref().unwrap();
-        let self_user = client.start_response().slf.as_ref().unwrap().id.as_ref().unwrap();
+    fn handle_join(&mut self, client: &RtmClient, join_msg: MessageChannelJoin) -> Option<()> {
+        let user = join_msg.user.as_ref()?;
+        let self_user = client.start_response().slf.as_ref()?.id.as_ref()?;
         if user == self_user {
             debug!("Join event from ourself, ignoring");
-            return
+            return Some(())
         }
 
         let channel = client.start_response().ims
-            .as_ref()
-            .unwrap()
+            .as_ref()?
             .iter()
-            .find(|im| im.user == Some(user.to_string()))
-            .unwrap()
+            .find(|im| im.user == Some(user.to_string()))?
             .id
-            .as_ref()
-            .unwrap();
-        match client.sender().send_message(&channel, self.get_greeting()) {
-            Ok(_) => {}
-            Err(err) => error!("Error greeting user {}: {:?}", user, err)
+            .as_ref()?;
+        let greeting = self.get_greeting(client, user)?;
+
+        match client.sender().send_message(&channel, &greeting) {
+            Ok(_) => Some(()),
+            Err(err) => {
+                error!("Error greeting user {}: {:?}", user, err);
+                None
+            }
         }
     }
 }

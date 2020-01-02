@@ -24,7 +24,12 @@ fn main() {
 
     let api_key = config["slack"]["api_key"].as_str()
         .expect("API key is not a string");
-    let mut handler = handler::Handler;
+    let greetings = config["bot"]["greetings"].as_array()
+        .expect("Greetings is not a list")
+        .iter()
+        .map(|val| val.as_str().expect("Greeting is not a string").to_string())
+        .collect();
+    let mut handler = handler::Handler { greetings };
 
     info!("Starting bot...");
     RtmClient::login_and_run(api_key, &mut handler)
