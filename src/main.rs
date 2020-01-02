@@ -11,7 +11,7 @@ mod handler;
 fn main() {
     stderrlog::new()
         .module(module_path!())
-        .verbosity(3)
+        .verbosity(2)
         .color(stderrlog::ColorChoice::Auto)
         .timestamp(stderrlog::Timestamp::Second)
         .init()
